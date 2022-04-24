@@ -1,0 +1,120 @@
+name: Build PSG1208
+
+on:
+  # release:
+  #   types: [published]
+  # push:
+  #   tags:
+  #     - "v*"
+  #   branches:
+  #     - master
+  schedule:
+    - cron: '0 0 * * *'
+  watch:
+    types: [started]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    if: github.event.repository.owner.id == github.event.sender.id
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+      - name: Initialization Environment
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo apt update
+          sudo apt install unzip libtool-bin curl cmake gperf gawk flex bison nano xxd \
+            fakeroot kmod cpio git python3-docutils gettext automake autopoint \
+            texinfo build-essential help2man pkg-config zlib1g-dev libgmp3-dev \
+            libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget libc-dev-bin
+      - name: Clone Source Code
+        run: |
+          git clone --depth=1 https://github.com/hanwckf/rt-n56u.git /opt/rt-n56u
+          cd /opt/rt-n56u/toolchain-mipsel
+          sh dl_toolchain.sh
+          mkdir -p /opt/images/
+      - name: Build Firmware
+        env:
+          DEV_NAME: PSG1208
+        run: |
+          cd /opt/rt-n56u/trunk
+          #因不同型号配置功能不一样，所以先把配置项删除，如果你自己要添加其他的，也要写上删除这一条
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_SCUTCLIENT/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_GDUT_DRCOM/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_DOGCOM/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_MINIEAP/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_NJIT_CLIENT/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_NAPT66/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_SOFTETHERVPN_SERVER/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_SOFTETHERVPN_CLIENT/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_SOFTETHERVPN_CMD/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_VLMCSD/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_TTYD/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_LRZSZ/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_HTOP/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_NANO/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_IPERF3/d' configs/templates/$DEV_NAME.config 
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_DUMP1090/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_RTL_SDR/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_SMBD36/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_MTR/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_SOCAT/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_SRELAY/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_3PROXY/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_MENTOHUST/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_FRPC/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_FRPS/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_TUNSAFE/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_WIREGUARD/d' configs/templates/$DEV_NAME.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_SMARTDNS/d' configs/templates/$DEV_NAME.config
+          #以下选项是定义你需要的功能（y=集成,n=忽略），重新写入到$DEV_NAME.config文件
+          echo "CONFIG_FIRMWARE_INCLUDE_SCUTCLIENT=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_GDUT_DRCOM=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_DOGCOM=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_MINIEAP=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_NJIT_CLIENT=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_NAPT66=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_SOFTETHERVPN_SERVER=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_SOFTETHERVPN_CLIENT=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_SOFTETHERVPN_CMD=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_VLMCSD=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_TTYD=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_LRZSZ=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_HTOP=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_NANO=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_IPERF3=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_DUMP1090=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_RTL_SDR=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_SMBD36=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_MTR=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_SOCAT=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_SRELAY=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_3PROXY=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_MENTOHUST=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_FRPC=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_FRPS=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_TUNSAFE=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_WIREGUARD=n" >> configs/templates/$DEV_NAME.config
+          echo "CONFIG_FIRMWARE_INCLUDE_SMARTDNS=n" >> configs/templates/$DEV_NAME.config
+
+          #########################################################################################
+          #自定义添加其它功能请参考源码configs/templates/目录下的config文件。按照上面的格式添加即可
+          #格式如下：
+          #sed -i '/自定义项/d' configs/templates/$DEV_NAME
+          #echo "自定义项=y" >> configs/templates/$DEV_NAME
+          #########################################################################################
+
+          fakeroot ./build_firmware_modify $DEV_NAME
+      - name: Upload Firmware to release
+        uses: svenstaro/upload-release-action@2.2.1
+        if: always()
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: /opt/rt-n56u/trunk/images/*.trx
+          tag: AutoBuild
+          overwrite: true
+          file_glob: true
+
